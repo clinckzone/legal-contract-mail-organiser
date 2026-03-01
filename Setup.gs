@@ -203,6 +203,9 @@ function setupTrigger() {
     }
   }
 
+  // Set the trigger start date - only emails after this date will be processed
+  const startDate = setTriggerStartDate();
+
   // Create new trigger to run every 5 minutes
   ScriptApp.newTrigger('processIncomingEmails')
     .timeBased()
@@ -211,6 +214,8 @@ function setupTrigger() {
 
   Logger.log('===========================================');
   Logger.log('Trigger set up successfully!');
+  Logger.log('Start date: ' + startDate.toISOString());
+  Logger.log('Only emails received AFTER this date will be processed.');
   Logger.log('The script will now run every 5 minutes to check for new emails.');
   Logger.log('===========================================');
 }

@@ -12,8 +12,18 @@ function processIncomingEmails() {
   const driveFolder = DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID);
   const sheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(CONFIG.SHEET_NAME);
 
-  // Search for unread emails that haven't been processed yet
-  const searchQuery = `is:unread -label:${CONFIG.PROCESSED_LABEL} has:attachment`;
+  // Get the trigger start date - only process emails after this date
+  const triggerStartDate = getTriggerStartDate();
+  if (!triggerStartDate) {
+    Logger.log('Trigger start date not set. Run setupTrigger() first.');
+    return;
+  }
+
+  // Format date for Gmail search query (YYYY/MM/DD)
+  const afterDate = Utilities.formatDate(triggerStartDate, Session.getScriptTimeZone(), 'yyyy/MM/dd');
+
+  // Search for unread emails that haven't been processed yet, received after trigger was set
+  const searchQuery = `is:unread -label:${CONFIG.PROCESSED_LABEL} has:attachment after:${afterDate}`;
   const threads = GmailApp.search(searchQuery, 0, 50);
 
   let processedCount = 0;
@@ -188,6 +198,40 @@ function generateContractId(sheet) {
 
   const nextNum = String(maxNum + 1).padStart(4, '0');
   return `${prefix}${nextNum}`;
+}
+
+/**
+ * Gets the trigger start date from script properties
+ * Only emails received after this date will be processed
+ */
+function getTriggerStartDate() {
+  const props = PropertiesService.getScriptProperties();
+  const startDateStr = props.getProperty('TRIGGER_START_DATE');
+
+  if (!startDateStr) {
+    return null;
+  }
+
+  return new Date(startDateStr);
+}
+
+/**
+ * Sets the trigger start date (called by setupTrigger)
+ */
+function setTriggerStartDate() {
+  const props = PropertiesService.getScriptProperties();
+  const now = new Date();
+  props.setProperty('TRIGGER_START_DATE', now.toISOString());
+  Logger.log('Trigger start date set to: ' + now.toISOString());
+  return now;
+}
+
+/**
+ * Resets the trigger start date to now
+ * Use this if you want to start fresh and ignore older emails
+ */
+function resetTriggerStartDate() {
+  return setTriggerStartDate();
 }
 
 /**

@@ -170,6 +170,12 @@ Edit `Setup.gs` → `setupTrigger()`:
 .everyMinutes(10)  // Change from 5 to 10 minutes
 ```
 
+### Reset the start date (ignore old emails)
+The system only processes emails received AFTER the trigger was set up. If you want to reset and start fresh:
+```javascript
+resetTriggerStartDate()  // Run this in Code.gs
+```
+
 ### Add more file types
 Edit `Config.gs`:
 ```javascript
