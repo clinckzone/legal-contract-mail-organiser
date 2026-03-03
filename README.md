@@ -1,126 +1,147 @@
-# Legal Contract Mail Organiser - Setup Instructions
+# Contract Organiser - Gmail Add-on
 
-This guide walks you through setting up the automated contract processing system.
+A Google Workspace Add-on that automatically organizes contract attachments (PDF/Word) from Gmail into Google Drive and tracks them in a spreadsheet.
 
-## Overview
+## Features
 
-The system will:
-1. Monitor your Gmail inbox every 5 minutes
-2. Detect emails with PDF/Word attachments
-3. Save attachments to an organized Google Drive folder
-4. Log contract details to a Google Sheet for tracking
+- **Automatic Detection**: Monitors Gmail for emails with PDF/Word attachments
+- **Drive Organization**: Saves attachments to organized folder structure (Year/Month)
+- **Spreadsheet Tracking**: Logs contracts with status tracking
+- **Team Collaboration**: Share folder and sheet with team members
+- **Simple Setup**: No coding required - just paste shared links
 
----
+## How It Works
 
-## Prerequisites
+```
+Email with PDF arrives → Add-on detects it → Saves to Drive → Logs to Sheet
+                                    ↓
+                         Legal counsel reviews in Sheet
+                                    ↓
+                    Updates status: Received → Under Review → Signed → Archived
+```
 
-- Google Workspace or personal Gmail account
-- Access to Google Apps Script (script.google.com)
+## Installation
 
----
-
-## Setup Steps
-
-### Step 1: Create a New Google Apps Script Project
+### Option 1: Deploy for Your Organization (Recommended)
 
 1. Go to [script.google.com](https://script.google.com)
-2. Click **"New Project"**
-3. Name the project: `Legal Contract Mail Organiser`
+2. Create a new project: **File → New Project**
+3. Name it: `Contract Organiser`
+4. Delete the default code and create these files:
 
-### Step 2: Add the Script Files
+| File | Content |
+|------|---------|
+| `appsscript.json` | Copy from this repo |
+| `Code.gs` | Copy from this repo |
+| `Cards.gs` | Copy from this repo |
+| `Actions.gs` | Copy from this repo |
 
-Delete the default `Code.gs` content and create the following files:
+5. To see `appsscript.json`:
+   - Click **Project Settings** (gear icon)
+   - Check **"Show 'appsscript.json' manifest file in editor"**
 
-| File Name | Content |
-|-----------|---------|
-| `Config.gs` | Copy from `Config.gs` in this repo |
-| `Code.gs` | Copy from `Code.gs` in this repo |
-| `Setup.gs` | Copy from `Setup.gs` in this repo |
+6. Deploy as Add-on:
+   - Click **Deploy → Test deployments**
+   - Select **Gmail** as the application
+   - Click **Install**
 
-To create a new file in Apps Script:
-- Click the **"+"** next to **Files**
-- Select **"Script"**
-- Name it (without the `.gs` extension)
+### Option 2: Publish to Workspace Marketplace
 
-### Step 3: Update the Manifest
-
-1. In Apps Script, click **Project Settings** (gear icon)
-2. Check **"Show 'appsscript.json' manifest file in editor"**
-3. Click **Editor** to go back
-4. Open `appsscript.json` and replace its contents with the content from `appsscript.json` in this repo
-
-### Step 4: Run Initial Setup
-
-1. In the Apps Script editor, select `Setup.gs` from the file list
-2. Select the function `setupDriveFolder` from the dropdown
-3. Click **Run**
-4. **Grant permissions** when prompted (first time only):
-   - Click "Review Permissions"
-   - Select your Google account
-   - Click "Advanced" → "Go to Legal Contract Mail Organiser"
-   - Click "Allow"
-5. Check the **Execution Log** (View → Logs) for the Folder ID
-6. Copy the Folder ID
-
-### Step 5: Create the Spreadsheet
-
-1. Select the function `setupSpreadsheet` from the dropdown
-2. Click **Run**
-3. Check the Execution Log for the Spreadsheet ID
-4. Copy the Spreadsheet ID
-
-### Step 6: Update Configuration
-
-1. Open `Config.gs`
-2. Update these values:
-   ```javascript
-   SPREADSHEET_ID: 'paste-your-spreadsheet-id-here',
-   DRIVE_FOLDER_ID: 'paste-your-folder-id-here',
-   TEAM_MEMBERS: [
-     'Unassigned',
-     'Your Name',
-     'Team Member 2',
-     // Add your team
-   ]
-   ```
-3. **Save the file** (Ctrl+S / Cmd+S)
-
-### Step 7: Set Up Automatic Trigger
-
-1. Select the function `setupTrigger` from the dropdown
-2. Click **Run**
-3. The script will now check for new emails every 5 minutes
-
-### Step 8: Test the System
-
-1. Send yourself a test email with a PDF attachment
-2. Run `testProcessEmails` manually to process immediately (don't wait 5 min)
-3. Check:
-   - ✅ Email gets labeled `ContractProcessed`
-   - ✅ PDF appears in Google Drive → Legal Contracts folder
-   - ✅ New row appears in the Google Sheet
+For organization-wide deployment, follow [Google's publishing guide](https://developers.google.com/workspace/marketplace/how-to-publish).
 
 ---
 
-## Using the System
+## User Guide
 
-### For Legal Counsels
+### First User (Creates Shared Resources)
 
-1. **Open the Google Sheet**: Legal Contracts Tracker
-2. **View the Dashboard tab** for summary statistics
-3. **Go to Contracts tab** to see all contracts
-4. **Filter contracts**:
-   - Click the filter icon in column headers
-   - Or create a Filter View (Data → Create a filter view)
-5. **Update a contract**:
-   - Change Status dropdown
-   - Assign to yourself or team member
-   - Add notes in the Notes column
-6. **Open the document**: Click the Drive Link
+1. **Open Gmail** and find the Contract Organiser in the right sidebar
+2. **Create New Folder**: Click "Create New Folder" button
+3. **Share the folder**: Click "Open & Share" and share with your team
+4. **Create New Spreadsheet**: Click "Create New Spreadsheet" button
+5. **Share the spreadsheet**: Click "Open & Share" and share with your team
+6. **Enter your name** and click **"Save & Start Monitoring"**
+7. **Send the shared links** to your team members
 
-### Filter View Examples
+### Other Team Members (Join Existing Setup)
 
-Create these saved filter views for quick access:
+1. **Open Gmail** and find the Contract Organiser in the right sidebar
+2. **Paste the folder link** that was shared with you
+3. **Paste the spreadsheet link** that was shared with you
+4. **Enter your name** and click **"Save & Start Monitoring"**
+
+---
+
+## Dashboard Features
+
+Once configured, the add-on shows:
+
+- **Status**: Whether monitoring is active
+- **Statistics**: Total contracts, by status, unassigned count
+- **Quick Links**: Open Sheet or Drive folder
+- **Actions**:
+  - Pause/Start Monitoring
+  - Process Emails Now (manual trigger)
+  - Reset Setup
+
+---
+
+## Spreadsheet Structure
+
+### Contracts Sheet
+
+| Column | Description |
+|--------|-------------|
+| Contract ID | Auto-generated (CTR-2026-0001) |
+| Subject | Email subject |
+| Sender Name | Sender's name |
+| Sender Email | Sender's email |
+| Received Date | When email arrived |
+| Attachment Name | Original filename |
+| Drive Link | Link to file in Drive |
+| Status | Dropdown: Received, Under Review, Approved, Signed, Archived |
+| Assigned To | Dropdown: Team members |
+| Notes | Free text |
+| Last Updated | Timestamp |
+
+### Dashboard Sheet
+
+Shows summary statistics:
+- Total contracts
+- Count by status
+- Unassigned contracts
+
+---
+
+## Drive Folder Structure
+
+```
+📁 Legal Contracts/
+├── README.txt
+├── 📁 2026/
+│   ├── 📁 01-January/
+│   │   └── 2026-01-15_vendor_corp_com_Contract.pdf
+│   ├── 📁 02-February/
+│   └── 📁 03-March/
+```
+
+---
+
+## Workflow for Legal Counsels
+
+1. **Check the spreadsheet** for new contracts (Status: Received)
+2. **Assign to yourself** using the "Assigned To" dropdown
+3. **Click Drive Link** to review the document
+4. **Update Status** as you work:
+   - `Under Review` - Currently reviewing
+   - `Approved` - Approved by legal
+   - `Signed` - Fully executed
+   - `Archived` - Completed and filed
+5. **Add Notes** for any comments
+
+### Using Filters
+
+Create Filter Views in Google Sheets:
 
 | View Name | Filter |
 |-----------|--------|
@@ -131,66 +152,25 @@ Create these saved filter views for quick access:
 
 ---
 
-## Sharing with Team
-
-### Share the Google Sheet
-1. Open the spreadsheet
-2. Click **Share**
-3. Add team members with **Editor** access
-
-### Share the Drive Folder
-1. Open the Legal Contracts folder in Drive
-2. Right-click → **Share**
-3. Add team members with **Viewer** or **Editor** access
-
----
-
 ## Troubleshooting
 
-### Emails not being processed
-- Check that the trigger is active: Apps Script → Triggers (clock icon)
-- Verify the email has a PDF/Word attachment
-- Check Execution Log for errors
+### Add-on not appearing in Gmail
+- Make sure you've deployed as a test deployment
+- Refresh Gmail
+- Check that Gmail is selected in deployment settings
 
-### Permission errors
-- Re-run any setup function and re-authorize if prompted
-- Ensure you're using the same Google account for Gmail, Drive, and Sheets
+### Emails not being processed
+- Check the Dashboard shows "Monitoring Active"
+- Verify the email has a .pdf, .doc, or .docx attachment
+- Only emails received AFTER setup are processed
+
+### "Cannot access folder/spreadsheet" error
+- Ask the owner to share the resource with you
+- Make sure you have at least Editor access
 
 ### Duplicate entries
-- The system labels processed emails with `ContractProcessed`
-- If duplicates appear, check if the label is being applied correctly
-
----
-
-## Customization
-
-### Change check frequency
-Edit `Setup.gs` → `setupTrigger()`:
-```javascript
-.everyMinutes(10)  // Change from 5 to 10 minutes
-```
-
-### Reset the start date (ignore old emails)
-The system only processes emails received AFTER the trigger was set up. If you want to reset and start fresh:
-```javascript
-resetTriggerStartDate()  // Run this in Code.gs
-```
-
-### Add more file types
-Edit `Config.gs`:
-```javascript
-ALLOWED_EXTENSIONS: ['pdf', 'doc', 'docx', 'xlsx', 'pptx']
-```
-
-### Change folder structure
-Edit `Code.gs` → `processAttachment()`:
-```javascript
-// Current: 2026/03-March/
-const yearMonth = Utilities.formatDate(receivedDate, Session.getScriptTimeZone(), 'yyyy/MM-MMMM');
-
-// Alternative: Just by year
-const yearMonth = Utilities.formatDate(receivedDate, Session.getScriptTimeZone(), 'yyyy');
-```
+- The add-on labels processed emails with "ContractProcessed"
+- Check if this label exists in your Gmail
 
 ---
 
@@ -198,7 +178,18 @@ const yearMonth = Utilities.formatDate(receivedDate, Session.getScriptTimeZone()
 
 | File | Purpose |
 |------|---------|
-| `appsscript.json` | Project manifest with permissions |
-| `Config.gs` | Configuration values (edit this) |
-| `Code.gs` | Main email processing logic |
-| `Setup.gs` | One-time setup functions |
+| `appsscript.json` | Add-on manifest and permissions |
+| `Code.gs` | Email processing logic |
+| `Cards.gs` | UI card builders |
+| `Actions.gs` | Button click handlers |
+
+---
+
+## Privacy & Permissions
+
+The add-on requires these permissions:
+- **Gmail**: Read emails, apply labels
+- **Drive**: Create folders and files
+- **Sheets**: Create and edit spreadsheets
+
+All data stays within your Google Workspace. No external servers are used.

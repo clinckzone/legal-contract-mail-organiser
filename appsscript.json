@@ -15,11 +15,29 @@
     ]
   },
   "oauthScopes": [
+    "https://www.googleapis.com/auth/gmail.readonly",
+    "https://www.googleapis.com/auth/gmail.labels",
     "https://www.googleapis.com/auth/gmail.modify",
     "https://www.googleapis.com/auth/drive",
     "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/script.scriptapp"
+    "https://www.googleapis.com/auth/script.scriptapp",
+    "https://www.googleapis.com/auth/userinfo.email"
   ],
   "exceptionLogging": "STACKDRIVER",
-  "runtimeVersion": "V8"
+  "runtimeVersion": "V8",
+  "addOns": {
+    "common": {
+      "name": "Contract Organiser",
+      "logoUrl": "https://www.gstatic.com/images/branding/product/2x/docs_2020q4_48dp.png",
+      "useLocaleFromApp": true,
+      "homepageTrigger": {
+        "runFunction": "onHomepage"
+      }
+    },
+    "gmail": {
+      "homepageTrigger": {
+        "runFunction": "onHomepage"
+      }
+    }
+  }
 }

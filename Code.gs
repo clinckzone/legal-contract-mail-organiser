@@ -3,27 +3,62 @@
  * Main automation script for processing incoming emails with contract attachments
  */
 
+// Constants (not user-configurable)
+const PROCESSED_LABEL = 'ContractProcessed';
+const ALLOWED_EXTENSIONS = ['pdf', 'doc', 'docx'];
+const CONTRACTS_SHEET_NAME = 'Contracts';
+
 /**
  * Main function - processes unread emails with PDF/Word attachments
  * This runs on a time-driven trigger (every 5 minutes)
  */
 function processIncomingEmails() {
-  const processedLabel = getOrCreateLabel(CONFIG.PROCESSED_LABEL);
-  const driveFolder = DriveApp.getFolderById(CONFIG.DRIVE_FOLDER_ID);
-  const sheet = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID).getSheetByName(CONFIG.SHEET_NAME);
+  // Get user configuration
+  const userProps = PropertiesService.getUserProperties();
+  const folderId = userProps.getProperty('FOLDER_ID');
+  const sheetId = userProps.getProperty('SHEET_ID');
+  const triggerStartDateStr = userProps.getProperty('TRIGGER_START_DATE');
 
-  // Get the trigger start date - only process emails after this date
-  const triggerStartDate = getTriggerStartDate();
-  if (!triggerStartDate) {
-    Logger.log('Trigger start date not set. Run setupTrigger() first.');
+  // Validate configuration
+  if (!folderId || !sheetId) {
+    Logger.log('Setup incomplete. Please configure the add-on first.');
     return;
   }
+
+  if (!triggerStartDateStr) {
+    Logger.log('Trigger start date not set.');
+    return;
+  }
+
+  const triggerStartDate = new Date(triggerStartDateStr);
+
+  // Get resources
+  let driveFolder, sheet;
+  try {
+    driveFolder = DriveApp.getFolderById(folderId);
+  } catch (e) {
+    Logger.log('Cannot access Drive folder: ' + e.message);
+    return;
+  }
+
+  try {
+    sheet = SpreadsheetApp.openById(sheetId).getSheetByName(CONTRACTS_SHEET_NAME);
+    if (!sheet) {
+      Logger.log('Contracts sheet not found.');
+      return;
+    }
+  } catch (e) {
+    Logger.log('Cannot access spreadsheet: ' + e.message);
+    return;
+  }
+
+  const processedLabel = getOrCreateLabel(PROCESSED_LABEL);
 
   // Format date for Gmail search query (YYYY/MM/DD)
   const afterDate = Utilities.formatDate(triggerStartDate, Session.getScriptTimeZone(), 'yyyy/MM/dd');
 
   // Search for unread emails that haven't been processed yet, received after trigger was set
-  const searchQuery = `is:unread -label:${CONFIG.PROCESSED_LABEL} has:attachment after:${afterDate}`;
+  const searchQuery = `is:unread -label:${PROCESSED_LABEL} has:attachment after:${afterDate}`;
   const threads = GmailApp.search(searchQuery, 0, 50);
 
   let processedCount = 0;
@@ -63,7 +98,7 @@ function processIncomingEmails() {
 function filterValidAttachments(attachments) {
   return attachments.filter(attachment => {
     const fileName = attachment.getName().toLowerCase();
-    return CONFIG.ALLOWED_EXTENSIONS.some(ext => fileName.endsWith(`.${ext}`));
+    return ALLOWED_EXTENSIONS.some(ext => fileName.endsWith(`.${ext}`));
   });
 }
 
@@ -198,47 +233,4 @@ function generateContractId(sheet) {
 
   const nextNum = String(maxNum + 1).padStart(4, '0');
   return `${prefix}${nextNum}`;
-}
-
-/**
- * Gets the trigger start date from script properties
- * Only emails received after this date will be processed
- */
-function getTriggerStartDate() {
-  const props = PropertiesService.getScriptProperties();
-  const startDateStr = props.getProperty('TRIGGER_START_DATE');
-
-  if (!startDateStr) {
-    return null;
-  }
-
-  return new Date(startDateStr);
-}
-
-/**
- * Sets the trigger start date (called by setupTrigger)
- */
-function setTriggerStartDate() {
-  const props = PropertiesService.getScriptProperties();
-  const now = new Date();
-  props.setProperty('TRIGGER_START_DATE', now.toISOString());
-  Logger.log('Trigger start date set to: ' + now.toISOString());
-  return now;
-}
-
-/**
- * Resets the trigger start date to now
- * Use this if you want to start fresh and ignore older emails
- */
-function resetTriggerStartDate() {
-  return setTriggerStartDate();
-}
-
-/**
- * Manual test function - process emails immediately
- */
-function testProcessEmails() {
-  Logger.log('Starting manual email processing...');
-  processIncomingEmails();
-  Logger.log('Done!');
 }
