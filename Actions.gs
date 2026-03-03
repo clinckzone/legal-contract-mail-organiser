@@ -266,7 +266,7 @@ function onSaveSetup(e) {
 
   return buildSuccessCard(
     'Setup Complete!',
-    'Your emails with PDF/Word attachments will now be automatically processed every 5 minutes.\n\n' +
+    'Your emails with PDF/Word attachments will now be automatically processed every hour.\n\n' +
     'Contracts will be saved to the shared Drive folder and logged in the spreadsheet.'
   );
 }
@@ -372,10 +372,10 @@ function setupUserTrigger() {
   const now = new Date();
   userProps.setProperty('TRIGGER_START_DATE', now.toISOString());
 
-  // Create new trigger
+  // Create new trigger (Add-ons require minimum 1 hour interval)
   ScriptApp.newTrigger('processIncomingEmails')
     .timeBased()
-    .everyMinutes(5)
+    .everyHours(1)
     .create();
 }
 
@@ -412,7 +412,7 @@ function onStartMonitoring(e) {
 
   return buildSuccessCard(
     'Monitoring Started',
-    'Email monitoring is now active. New emails with PDF/Word attachments will be processed every 5 minutes.'
+    'Email monitoring is now active. New emails with PDF/Word attachments will be processed every hour.'
   );
 }
 
