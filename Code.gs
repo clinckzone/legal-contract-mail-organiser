@@ -10,27 +10,19 @@ const CONTRACTS_SHEET_NAME = 'Contracts';
 
 /**
  * Main function - processes unread emails with PDF/Word attachments
- * This runs on a time-driven trigger (every 5 minutes)
+ * This runs on a time-driven trigger (every hour)
  */
 function processIncomingEmails() {
   // Get user configuration
   const userProps = PropertiesService.getUserProperties();
   const folderId = userProps.getProperty('FOLDER_ID');
   const sheetId = userProps.getProperty('SHEET_ID');
-  const triggerStartDateStr = userProps.getProperty('TRIGGER_START_DATE');
 
   // Validate configuration
   if (!folderId || !sheetId) {
     Logger.log('Setup incomplete. Please configure the add-on first.');
     return;
   }
-
-  if (!triggerStartDateStr) {
-    Logger.log('Trigger start date not set.');
-    return;
-  }
-
-  const triggerStartDate = new Date(triggerStartDateStr);
 
   // Get resources
   let driveFolder, sheet;
@@ -54,11 +46,10 @@ function processIncomingEmails() {
 
   const processedLabel = getOrCreateLabel(PROCESSED_LABEL);
 
-  // Format date for Gmail search query (YYYY/MM/DD)
-  const afterDate = Utilities.formatDate(triggerStartDate, Session.getScriptTimeZone(), 'yyyy/MM/dd');
-
-  // Search for unread emails that haven't been processed yet, received after trigger was set
-  const searchQuery = `is:unread -label:${PROCESSED_LABEL} has:attachment after:${afterDate}`;
+  // Search for unread emails from last 7 days that haven't been processed yet
+  // Using 7-day rolling window for efficiency (avoids searching years of emails)
+  // The "ContractProcessed" label prevents duplicates
+  const searchQuery = `is:unread -label:${PROCESSED_LABEL} has:attachment newer_than:7d`;
   const threads = GmailApp.search(searchQuery, 0, 50);
 
   let processedCount = 0;
